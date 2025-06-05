@@ -33,16 +33,21 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-/* manual bir şekilde tüm endpointleri bu şekilde import etmek yerine diinamik bir yapı oluşturmalıyız ve 
+// app.use middleware functionlarını çalıştırmak içindir - registering middlewares
+
+/* manual bir şekilde tüm endpointleri bu şekilde import etmek yerine dinamik bir yapı oluşturmalıyız ve 
 ????api endpointi ile bu dosyalara frontendden erişimi enggelleriz?????
 app.use('/', require('./routes/index'));
 app.use('/users', require('./routes/users'));
 app.use('/auditlogs', require('./routes/auditlogs'));
 */
+app.use("/",(req,res,next)=> {
+  console.log("I am a midlleware which is defined in app.js");
+  // next ile bir sonraki endpoint tanımına geçtim
+  next();
+});
+
 app.use('/api', require('./routes/index'));
-
-
-
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
