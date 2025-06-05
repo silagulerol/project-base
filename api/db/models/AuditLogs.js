@@ -1,6 +1,6 @@
 // veritabanı tablosu modelini oluşturacağız
 //veriatbanaı bağlantsını oluşturan kütüphane mongoose olduğu için buraya da tanımlıyoruz
-const mongoose= require("mongoose")
+const mongoose= require("mongoose");
 
 // Schema oluşturma
 const schema = mongoose.Schema({
@@ -9,7 +9,7 @@ const schema = mongoose.Schema({
     email:String ,
     location: String,
     proc_type: String,
-    log: String,
+    log: mongoose.SchemaTypes.Mixed,
 }, {
     versionKey:false,
     timestamps:{
@@ -26,5 +26,6 @@ class AuditLogs extends mongoose.Model {
 
 // User class'ını şemaya dahil ediyoruz
 schema.loadClass(AuditLogs);
+
 // 1. parametre: collection (tablo) ismimiz, 2.parametre schema
 module.exports = mongoose.model("audit_logs", schema);

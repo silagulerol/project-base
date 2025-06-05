@@ -2,11 +2,11 @@ const mongoose = require("mongoose");
 
 const schema =mongoose.Schema({
     role_id: {
-        type: mongoose.SchemaType.ObjectID,
+        type: mongoose.Schema.Types.ObjectID,
         required: true
     }, 
     user_id: {
-        type: mongoose.SchemaType.Object,
+        type: mongoose.Schema.Types.ObjectID,
         required:true
     },
 }, {

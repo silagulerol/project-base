@@ -5,7 +5,7 @@ const mongoose= require("mongoose")
 // Schema oluşturma
 const schema = mongoose.Schema({
     // id değerini mongoose otomati olarak tanımlar bu yüzden tanımlamamıza gerek yok
-    email: {type: String, required:true},
+    email: {type: String, required:true, unique:true},
     password: {type: String, required:true},
     is_active: {type: Boolean, default:true},
     first_name: String,
@@ -27,5 +27,6 @@ class Users extends mongoose.Model {
 
 // User class'ını şemaya dahil ediyoruz
 schema.loadClass(Users);
+
 // 1. parametre: collection (tablo) ismimiz, 2.parametre schema
 module.exports = mongoose.model("users", schema);
