@@ -4,6 +4,7 @@ var router = express.Router();
 const bcrypt= require("bcrypt-nodejs");
 //email kontrolü için
 const is =require("is_js");
+const jwt =require("jwt-simple");
 
 const Users = require("../db/models/Users");
 const Roles = require("../db/models/Roles");
@@ -11,6 +12,7 @@ const UserRoles = require("../db/models/UserRoles");
 var Response = require("../lib/Response");
 var CustomError= require("../lib/Error");
 var Enum = require("../config/Enum");
+const config = require('../config');
 
 /* GET users listing. */
 router.get('/', async function(req, res) {
@@ -183,8 +185,8 @@ router.post('/register', async(req,res) => {
         // round (aşağıda 8) değerini büyük girmek maliyet faktörünü arttırıyor, böyleec password daha zor oluyor
         let password = bcrypt.hashSync(body.password, bcrypt.genSaltSync(8), null);
         
-        //creating new user
-        // create static olarak tanımlanmış bir metoddur, class referansıyla çağrılabilinir
+
+        //creating new user - create static olarak tanımlanmış bir metoddur, class referansıyla çağrılabilinir
         let createdUser = await Users.create({
             email:  body.email,
             password: password, //password  de yazabilirdik sadece 
@@ -214,5 +216,45 @@ router.post('/register', async(req,res) => {
         res.status(errorResponse.code).json(errorResponse);
     }
 });
+
+router.post('/auth', async (req, res) => {
+    try {
+
+        let {email, password} = req.body;
+
+        Users.validateFieldsBeforeAuth(email, password);
+
+        //if(!email) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "validation error", "the email field must be filled");
+        //if(!password) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "validation error", "the password field must be filled");
+
+
+        // ilk önce verilen email'e sahip bir user var mı kontrolü yapılır sonrasında passsword validation kontrolü
+        let user = await Users.findOne( {email} );
+        if(!user) throw new CustomError(Enum.HTTP_CODES.UNAUTHORIZED, "validation error", "the email or password wrong"); 
+        if (!user.validatePassword(password)) throw new CustomError(Enum.HTTP_CODES.UNAUTHORIZED, "validation error", "the email or password wrong"); ;
+
+        // validationlar yapıldıktan sonra JWT Token yaratılmaya başlanır
+        let payload = {
+            id: user._id,
+            exp: parseInt(Date.now() / 1000 ) * config.JWT.EXPIRE_TIME
+        }
+
+        //jwt-simple kütüphanesi encode ve decode işlemleri yapmamızı sağlar
+        let token = jwt.encode(payload, config.JWT.S#ECRET);
+
+        let userData = {
+            _id: user._id,
+            first_name: user.first_name,
+            last_name: user.last_name
+        }
+
+        res.json(Response.successResponse({token, user: userData}));
+
+    }catch(err) {
+        let errorResponse = Response.errorResponse(err);
+        res.status(errorResponse.code).json(errorResponse);
+    }
+})
+
 
 module.exports = router;
