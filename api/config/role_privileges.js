@@ -114,9 +114,15 @@
         },
          {
             key:"category_delete",
-            name:"Auditlogs Delete",
+            name:"Category Delete",
             group:"CATEGORIES",
-            description:"Auditlogs delete"
+            description:"Category delete"
+        },
+        {
+            key:"category_export",
+            name:"Category Export",
+            group:"CATEGORIES",
+            description:"Category export"
         },
         {
             key:"auditlogs_view",
