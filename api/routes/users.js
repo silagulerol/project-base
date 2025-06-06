@@ -15,6 +15,8 @@ var Enum = require("../config/Enum");
 const config = require('../config');
 const auth = require('../lib/auth')();
 
+const i18n= new (require('../lib/i18n'))(config.DEFAULT_LANG);
+
 //user register
 router.post('/register', async(req,res) => {
     let body = req.body; 
@@ -133,7 +135,7 @@ router.post('/add',auth.checkRoles("user_add"),  async(req,res) => {
     let body = req.body; 
     try{
         // body controls
-        if(!body.email) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "validation error", "email field must be filled")
+        if(!body.email) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR_TITLE", req.user.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user.language, ["email"] ));
 
         if(is.not.email(body.email)) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "validation error", "email field must be an email ofrmat")
 
@@ -199,8 +201,7 @@ router.post('/update', auth.checkRoles("user_update"), async (req, res) => {
         let updates = {}
         //body controls
 
-        if(!body._id) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "validation error", "_id field must be filled");
-
+        if(!body._id) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, i18n.translate("COMMON.VALIDATION_ERROR_TITLE", req.user.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user.language, ["_id"] ));
         if(body.password && body.password >= Enum.PASS_LENGTH){
             updates.password = bcrypt.hashSync(body.password,  bcrypt.genSaltSync(8), null);
         } 
@@ -250,7 +251,7 @@ router.post('/delete', auth.checkRoles("user_delete"), async (req, res) => {
     let body =req.body;
     try{
         // id kontrolü yap
-        if(!body._id) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "validation error", "_id field must be filled");
+        if(!body._id) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST,i18n.translate("COMMON.VALIDATION_ERROR_TITLE", req.user.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user.language, ["_id"] ));
 
         // silme işlemi yap
         await Users.deleteOne({_id: body._id});
