@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-const config= require("../config")
+const config= require("../config");
 
 const fs =require("fs");
 

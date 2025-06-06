@@ -16,8 +16,14 @@ const AuditLogs = require("../lib/AuditLogs");
 
 const logger = require('../lib/logger/LoggerClass');
 
+const auth = require('../lib/auth')();
+
+router.all('*', auth.authenticate(), (req, res, next) => {
+    next();
+});
+
 /* GET users listing. */
-router.get('/', async (req, res, next) =>{
+router.get('/',  auth.checkRoles("category_view"), async (req, res, next) =>{
   
   try{
     // db'ye find sorgusu atılır
@@ -34,7 +40,7 @@ router.get('/', async (req, res, next) =>{
 });
 
 // id'yi database verdiği için name olup olmadığının kontrolünü yaptım
-router.post('/add', async (req, res) => {
+router.post('/add', auth.checkRoles("category_add"), async (req, res) => {
   let body = req.body;
   try {
     // Code alanlarını Enum olarak kullanmak için config'e Enum tanımladık. Burada da validation failed vericez
@@ -95,7 +101,7 @@ router.post('/add_many', async (req, res) => {
 });
 */
 
-router.post('/update', async (req, res, next)=> {
+router.post('/update',auth.checkRoles("category_update"), async (req, res, next)=> {
   let body = req.body;
   try{
     // update edilecek objenin id'si verilmek zorunda, diğer field'lerde zorunluluk yok.
@@ -121,7 +127,7 @@ router.post('/update', async (req, res, next)=> {
 });
 
 
-router.post ('/delete',async (req, res, next) => {
+router.post ('/delete',auth.checkRoles("category_delete"), async (req, res, next) => {
   let body = req.body;
   try{
      if(!body._id) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST, "validation error", "_id field must be filled");
