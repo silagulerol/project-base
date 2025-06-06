@@ -18,13 +18,32 @@ const i18n= new (require('../lib/i18n'))(config.DEFAULT_LANG);
 const emitter= require('../lib/Emitter');
 const exportExcel = new (require("../lib/Export"))();
 const fs = require('fs');
+const multer = require('multer');
+const path = require('path');
+const Import = require('../lib/Import');
+const excelImport = new (require('../lib/Import'))();
+
+
+let multerStorage = multer.diskStorage({
+  // req: atılan request içeriği, file: yüklenen dosya, next: tetiklenen callback fonksiyon hata fırlatılmıyorsa
+  destination: (req, file, next) => {
+    next(null, config.FILE_UPLOAD_PATH)
+  },
+  filename: (req,file, next) =>{
+    next(null, file.fieldname + "_" + Date.now() + path.extname(file.originalname));
+  }
+});
+
+const upload = multer( {storage: multerStorage}).single("pb_file");
+
+
 
 router.all('*', auth.authenticate(), (req, res, next) => {
     next();
 });
 
 /* GET users listing. */
-router.get('/',  auth.checkRoles("category_view"), async (req, res, next) =>{
+router.get('/',  /*auth.checkRoles("category_view"), */async (req, res, next) =>{
   
   try{
     // db'ye find sorgusu atılır
@@ -167,6 +186,35 @@ router.post('/export' , /*auth.checkRoles("category_export"),*/ async (req, res,
     res.download(filePath);
 
     //fs.unlinkSync(filePath);
+
+  } catch(err) {
+     let errorResponse = Response.errorResponse(err);
+     res.status(errorResponse.code).json(errorResponse);
+  }
+});
+
+router.post('/import', /*auth.checkRoles("category_add"),*/upload, async(req, res,next) =>{
+  try {
+    let file =req.file;
+    let body = req.body;
+
+    let rows = excelImport.fromExcel(file.path);
+
+    //ilk olarak bir format belirliyoruz
+    for (let i=1; i < rows.length; i++) {
+      let [name, is_active, user, created_at, updated_at] = rows[i];
+
+      if(name) {
+        await Categories.create({
+          name: name,
+          is_active: is_active,
+          created_by: req.user._id //excel dosyasında bu alan boş olduğu için gelen requestten çektik
+        });
+      }
+      
+    }
+
+    res.status(Enum.HTTP_CODES.CREATED).json(Response.successResponse(req.body, Enum.HTTP_CODES.CREATED));
 
   } catch(err) {
      let errorResponse = Response.errorResponse(err);
