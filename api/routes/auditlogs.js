@@ -3,13 +3,19 @@ const router= express.Router();
 const Response =require("../lib/Response");
 const AuditLogs = require("../db/models/AuditLogs");
 const moment= require("moment");
+const auth = require('../lib/auth')();
 
 // Endpoint oluşturulması: router geliştirmek
 // request: gelen requestin body,headers, params ve query fieldalarını içerir, 
 // response: geri döndürülücek cevap için kullanılacak methodları barındırır, next: başka bir router'a gidilecekse vs.
 // body url'le eklenmez, query ve params url'e eklenir, 
 // params eklenmiş url farklı bir endpoint gibi davranır query eklnemiş aksine
-router.post("/", async (req, res,) => {
+
+router.all('*', auth.authenticate(), (req, res, next) => {
+    next();
+});
+
+router.post("/", auth.checkRoles("auditlogs_view"), async (req, res,) => {
     try{
         let body = req.body;
         let query = {};

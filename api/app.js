@@ -33,6 +33,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+const auth = require("./lib/auth")();  // auth fonksiyonunu çağır
+app.use(auth.initialize()); 
+
 // app.use middleware functionlarını çalıştırmak içindir - registering middlewares
 
 /* manual bir şekilde tüm endpointleri bu şekilde import etmek yerine dinamik bir yapı oluşturmalıyız ve 
@@ -41,6 +44,7 @@ app.use('/', require('./routes/index'));
 app.use('/users', require('./routes/users'));
 app.use('/auditlogs', require('./routes/auditlogs'));
 */
+
 app.use("/",(req,res,next)=> {
   console.log("I am a midlleware which is defined in app.js");
   // next ile bir sonraki endpoint tanımına geçtim
