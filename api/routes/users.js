@@ -3,8 +3,8 @@ var router = express.Router();
 // password hashing için
 const bcrypt= require("bcrypt-nodejs");
 //email kontrolü için
-const is =require("is_js");
-const jwt =require("jwt-simple");
+const is = require("is_js");
+const jwt = require("jwt-simple");
 
 const Users = require("../db/models/Users");
 const Roles = require("../db/models/Roles");
@@ -14,8 +14,24 @@ var CustomError= require("../lib/Error");
 var Enum = require("../config/Enum");
 const config = require('../config');
 const auth = require('../lib/auth')();
-
 const i18n= new (require('../lib/i18n'))(config.DEFAULT_LANG);
+const  { rateLimit } = require( 'express-rate-limit')
+const  RateLimitMongo = require('rate-limit-mongo');
+
+
+const limiter = rateLimit({
+    store: new RateLimitMongo ({
+        uri:config.CONNECTION_STRING,
+        collectionName: "rateLimits",
+        expireTimeMs:15 * 60 * 1000, // 15 minutes
+    }),
+	windowMs: 15 * 60 * 1000, // 15 minutes
+	limit: 5, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+	//standardHeaders: 'draft-8', // draft-6: `RateLimit-*` headers; draft-7 & draft-8: combined `RateLimit` header
+	legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+	// store: ... , // Redis, Memcached, etc. See below.
+})
+
 
 //user register
 router.post('/register', async(req,res) => {
@@ -74,7 +90,7 @@ router.post('/register', async(req,res) => {
 });
 
 // user login
-router.post('/auth', async (req, res) => {
+router.post('/auth', limiter, async (req, res) => {
     try {
 
         let {email, password} = req.body;
@@ -220,10 +236,11 @@ router.post('/update', auth.checkRoles("user_update"), async (req, res) => {
         if(body.last_name) updates.last_name = body.last_name;
         if(body.phone_number) updates.phone_number = body.phone_number;
 
+        if(req.user.id == body._id) body.roles= null;
 
         //ROLES CONTROL
         // eğer role field'ı array ve boş değilse DB'de yine body'de verilen user id ye göre UserRole tablosundan role'leri çekicez
-        if(Array.isArray(body.roles) || body.roles.length >= 0 ){
+        if(Array.isArray(body.roles) && body.roles.length > 0 ){
             let userRoles = await UserRoles.find({user_id: body._id});           
             
             // body'deki role field'i ile DB userRole'leri karşılaştırırız
