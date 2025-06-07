@@ -13,7 +13,7 @@ console.log(routes);
 
 // appten gelen her bir requesti endpoimtine göre doğru router'a yönlendiririz
 for(let route of routes){
-  if(route.includes(".js") && route != "index.js" ){
+  if (route.includes(".js") && route != "index.js" ){
     //middleware tanımlıyoruz ve require ettiğimiz için her route sonunda mutlaka router export edilmiş olmalı
     router.use('/' + route.replace(".js", "") , require('./' + route)) ;
   }

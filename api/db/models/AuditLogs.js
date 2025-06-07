@@ -5,8 +5,8 @@ const mongoose= require("mongoose");
 // Schema oluşturma
 const schema = mongoose.Schema({
     // id değerini mongoose otomati olarak tanımlar bu yüzden tanımlamamıza gerek yok
-    level:String,
-    email:String ,
+    level: String,
+    email: String,
     location: String,
     proc_type: String,
     log: mongoose.SchemaTypes.Mixed,
