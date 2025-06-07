@@ -21,7 +21,7 @@ module.exports = function() {
                 Aktifse ilk olarak user'ın VERİTABANINDAN role'lerini ve o role'lerin privilegler'ını çekmeliyiz.
                 Kullanıcının sahip olduğu yetkilerin detaylarını CONFIG/ROLEPRIVILEGES.JS'den çekiyoruz.
 
-                done callback function'ı ile kullanıcıyı authenticate edip etmediğimiz bilgisini (edildiyse de req.body .user kısmında kullanıcı bilgileri ile) strategy midleware'dan role middleware'a dönüyoruz
+                done callback function'ı ile kullanıcıyı authenticate edip etmediğimiz bilgisini (edildiyse de req.body.user kısmında kullanıcı bilgileri ile) strategy midleware'dan role middleware'a dönüyoruz
                 done functionı'nın ilk parametresi error eğer null'dan farklı bir değer verirsek authenticate edemediğimiz anlamı çıkar,ikinci parametresi ise jwt tojen payload'dundaki biliglerdir, payload kısmı hassa bilgi içermemmeli çünkü son kullanıcı tarafından erişilebilinir.
         }
     Oluşturlan stratejiyi passportun kullanabileceği şekilde tanımlamamız gerekiyor use metodu ile, böylece passport artık ilgili stratejiyi tanımış olur.
@@ -72,7 +72,8 @@ module.exports = function() {
         },
         checkRoles: function(...expectedRoles){
             return (req, res, next) =>{ 
-                let privileges = req.user.roles.map(x => x.key);
+                // filter undefined ya da false alanı görürse oluşturduğu array'e parametre olarak aldığı değeri eklemez (Yani x endefined ise map fonksiyonuna girmez nöylece x.key hata vermez)
+                let privileges = req.user.roles.filter(x => x).map(x => x.key);
 
                 let i=0 ;
 

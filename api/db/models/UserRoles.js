@@ -3,11 +3,13 @@ const mongoose = require("mongoose");
 const schema =mongoose.Schema({
     role_id: {
         type: mongoose.Schema.Types.ObjectID,
-        required: true
+        required: true,
+        ref: 'Roles'
     }, 
     user_id: {
         type: mongoose.Schema.Types.ObjectID,
-        required:true
+        required:true,
+        ref: 'Users'
     },
 }, {
     versionKey: false,

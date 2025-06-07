@@ -121,7 +121,17 @@ router.all('*', auth.authenticate(), (req, res, next) => {
 /* GET users listing. */
 router.get('/', auth.checkRoles("user_view"), async function(req, res) {
     try {
-      let users = await Users.find({})
+      // {}, {password: 0} --> tüm filed'ları al ama password alma
+      //{}, {password: 0, is_active:0} -->  tüm filed'ları al ama password ve is_active alma
+      // {}, {password: 1} --> sadece password field'ını al (._id default döner)
+      // {}, {password: 1, _id: 0} --> sadece password field'ını al (._id field'ı da dönmez)
+      let users = await Users.find({}, {password: 0}).lean(); 
+      
+      // kullanıcı bilgilerini çektiğimde her bir document'a rol bilgilerini de ekelemk istiyorum
+      for (let i=0; i < users.length; i++) {
+        let roles = await  UserRoles.find( {user_id: users[i]._id}).populate("role_id");
+        users[i].roles = roles;
+      }
 
       res.json(Response.successResponse(users));
 

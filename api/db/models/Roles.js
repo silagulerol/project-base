@@ -36,4 +36,4 @@ class Roles extends mongoose.Model {
 // User class'ını şemaya dahil ediyoruz
 schema.loadClass(Roles);
 // 1. parametre: collection (tablo) ismimiz, 2.parametre schema
-module.exports = mongoose.model("roles", schema);
+module.exports = mongoose.model("Roles", schema);
