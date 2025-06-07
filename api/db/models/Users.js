@@ -42,4 +42,4 @@ class Users extends mongoose.Model {
 schema.loadClass(Users);
 
 // 1. parametre: collection (tablo) ismimiz, 2.parametre schema
-module.exports = mongoose.model("users", schema);
+module.exports = mongoose.model("Users", schema);

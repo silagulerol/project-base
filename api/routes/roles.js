@@ -15,9 +15,20 @@ router.all('*', auth.authenticate(), (req, res, next) => {
     next();
 });
 
-router.get("/", auth.checkRoles("role_view"), async (req, res, next) => {
+router.get("/", /*auth.checkRoles("role_view"), */  async (req, res, next) => {
     try {
-        let roles = await Roles.find({});
+        //roles arrayindeki her bir item bir role document: { role_name: "asd", is_active: true/false, created_by: user._id }
+        // lean() --> ancak ben ekleme yapmak istediğim için bir mongoose model objesi array'i olan roles array'ini bir javascript objesi modeline çeviriyorum.
+        let roles = await Roles.find({}).lean();
+
+        // ikinci çözüm javascript objesine çevirim için
+        // roles= JSON.parse( JSON.stringify(roles) );
+
+        for (let i=0; i < roles.length; i++) {
+            // her bir role için o role ait permissionları çekeceğim bir permissions array oluşturuyorum. Permissions dizisindeki her bir item bir permnission document {role_id: role._id, permission: "category_view", created_by: user._id }
+            let permissions = await RolePrivileges.find( {role_id :roles[i]._id });
+            roles[i].permissions = permissions; 
+        }
 
         res.json(Response.successResponse(roles));
     
