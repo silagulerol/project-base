@@ -1,21 +1,27 @@
 const express = require("express");
 const router =express.Router();
-const Roles = require("../db/models/Roles");
-const Response = require("../lib/Response");
-const Enum = require("../config/Enum");
-const CustomError =require("../lib/Error");
-const rolePrivileges = require("../config/role_privileges");
-const RolePrivileges = require("../db/models/RolePrivileges");
-const auth = require('../lib/auth')();
 
 const config= require('../config');
+const Enum = require("../config/Enum");
+
+const Response = require("../lib/Response");
+const auth = require('../lib/auth')();
+const CustomError =require("../lib/Error");
 const i18n= new (require('../lib/i18n'))(config.DEFAULT_LANG);
+
+const Roles = require("../db/models/Roles");
+const rolePrivileges = require("../config/role_privileges");
+const RolePrivileges = require("../db/models/RolePrivileges");
+const UserRoles = require("../db/models/UserRoles");
+
+
+
 
 router.all('*', auth.authenticate(), (req, res, next) => {
     next();
 });
 
-router.get("/", /*auth.checkRoles("role_view"), */  async (req, res, next) => {
+router.get("/", auth.checkRoles("role_view"),   async (req, res, next) => {
     try {
         //roles arrayindeki her bir item bir role document: { role_name: "asd", is_active: true/false, created_by: user._id }
         // lean() --> ancak ben ekleme yapmak istediğim için bir mongoose model objesi array'i olan roles array'ini bir javascript objesi modeline çeviriyorum.
@@ -80,11 +86,20 @@ router.post('/add', auth.checkRoles("role_add"), async (req, res, next) =>{
 });
 
 router.post('/update', auth.checkRoles("role_update"), async (req, res, next) =>{
-    let body = req.body;
+    let body = req.body; // id olarak aldığım güncellemek istediğim rolün ObjectId'si
     try{
         let updates = {};
 
         if(!body._id) throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST,  i18n.translate("COMMON.VALIDATION_ERROR_TITLE", req.user.language), i18n.translate("COMMON.FIELD_MUST_BE_FILLED", req.user.language, ["_id"] ));
+        
+        // Eğer güncellemek istediğim rolün id'si login yapan kullanıcının rollerinden biriyse ---> ERROR , çünkü kendi rolünün yetkilerini arttırmasını istemiyoruz
+        // kullanıcı bu role sahip mi diye sorguluyoruz
+        let userRole = await UserRoles.find( {user_id: req.user.id } ,{role_id: body._id} );
+
+        if(userRole){
+            throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST,  i18n.translate("COMMON.NEED_PERMISSION", req.user.language), i18n.translate("COMMON.NEED_PERMISSION", req.user.language));
+        }
+        if(body._id )
         if(body.role_name) updates.role_name = body.role_name;
         if(typeof body.is_active === "boolean") updates.is_active = body.is_active;
 
